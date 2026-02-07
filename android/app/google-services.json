@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "656622583306",
+    "project_id": "ble-attendance-app-2511a",
+    "storage_bucket": "ble-attendance-app-2511a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:656622583306:android:aaa498a57392cfc15c29f3",
+        "android_client_info": {
+          "package_name": "com.example.ble_attendance_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBcr1LHzj76K0SJ4aMnDxw91RPjJjtTHKE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
