@@ -106,9 +106,15 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
         startTime: startDateTime,
         endTime: endDateTime,
         venue: _venueController.text.trim(),
-        beaconUuid: _beaconUuidController.text.trim(),
-        beaconMajor: int.parse(_beaconMajorController.text),
-        beaconMinor: int.parse(_beaconMinorController.text),
+        beaconUuid: _beaconUuidController.text.trim().isEmpty 
+            ? 'N/A' 
+            : _beaconUuidController.text.trim(),
+        beaconMajor: _beaconMajorController.text.isEmpty 
+            ? 0 
+            : int.parse(_beaconMajorController.text),
+        beaconMinor: _beaconMinorController.text.isEmpty 
+            ? 0 
+            : int.parse(_beaconMinorController.text),
         isActive: true,
         createdAt: DateTime.now(),
       );
@@ -275,19 +281,14 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
             TextFormField(
               controller: _beaconUuidController,
               decoration: InputDecoration(
-                labelText: 'Beacon UUID',
+                labelText: 'Beacon UUID (Optional)',
                 prefixIcon: const Icon(Icons.bluetooth),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
                 hintText: 'e.g., FDA50693-A4E2-4FB1-AFCF-C6EB07647825',
+                helperText: 'Leave blank if unknown',
               ),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter beacon UUID';
-                }
-                return null;
-              },
             ),
             const SizedBox(height: 16),
             Row(
@@ -297,21 +298,13 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                     controller: _beaconMajorController,
                     keyboardType: TextInputType.number,
                     decoration: InputDecoration(
-                      labelText: 'Major',
+                      labelText: 'Major (Optional)',
                       prefixIcon: const Icon(Icons.numbers),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
+                      helperText: 'Leave blank if unknown',
                     ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Required';
-                      }
-                      if (int.tryParse(value) == null) {
-                        return 'Invalid number';
-                      }
-                      return null;
-                    },
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -320,21 +313,13 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                     controller: _beaconMinorController,
                     keyboardType: TextInputType.number,
                     decoration: InputDecoration(
-                      labelText: 'Minor',
+                      labelText: 'Minor (Optional)',
                       prefixIcon: const Icon(Icons.numbers),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
+                      helperText: 'Leave blank if unknown',
                     ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Required';
-                      }
-                      if (int.tryParse(value) == null) {
-                        return 'Invalid number';
-                      }
-                      return null;
-                    },
                   ),
                 ),
               ],

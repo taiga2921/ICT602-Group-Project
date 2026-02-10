@@ -20,32 +20,87 @@ class AuthService {
         email: email,
         password: password,
       );
-      User? user = result.user;
+
+      // Wait a moment for auth state to settle
+      await Future.delayed(Duration(milliseconds: 300));
+
+      User? user = _auth.currentUser; // Use currentUser instead of result.user
 
       if (user != null) {
-        // Get user data from Firestore
-        DocumentSnapshot doc =
-            await _firestore.collection('users').doc(user.uid).get();
+        // Try to get user data from Firestore
+        try {
+          DocumentSnapshot doc =
+              await _firestore.collection('users').doc(user.uid).get();
 
-        if (doc.exists && doc.data() != null) {
-          final data = doc.data();
-          if (data is Map<String, dynamic>) {
-            return UserModel.fromMap(data);
+          if (doc.exists && doc.data() != null) {
+            final data = doc.data();
+            if (data is Map<String, dynamic>) {
+              print('User data loaded from Firestore');
+              return UserModel.fromMap(data);
+            }
           }
+        } catch (firestoreError) {
+          print('Firestore read error: $firestoreError');
         }
 
-        // Create new user document if it doesn't exist
+        // If user doc doesn't exist or error occurred, create it
+        print('Creating new user document in Firestore');
         UserModel newUser = UserModel(
           uid: user.uid,
           email: user.email ?? '',
           isAdmin: false,
+          displayName: user.displayName,
         );
-        await _firestore.collection('users').doc(user.uid).set(newUser.toMap());
+
+        try {
+          await _firestore
+              .collection('users')
+              .doc(user.uid)
+              .set(newUser.toMap(), SetOptions(merge: true));
+          print('User document created successfully');
+        } catch (writeError) {
+          print('Firestore write error: $writeError');
+        }
+
         return newUser;
       }
       return null;
+    } on FirebaseAuthException catch (e) {
+      print('Firebase Auth error: ${e.code} - ${e.message}');
+      rethrow;
     } catch (e) {
-      print('Sign in error: $e');
+      print('Sign in error: ${e.runtimeType} - $e');
+      // If it's the type cast error, ignore it and proceed
+      if (e.toString().contains('PigeonUserDetails')) {
+        print('Ignoring PigeonUserDetails error, using currentUser');
+
+        // Wait and use currentUser
+        await Future.delayed(Duration(milliseconds: 500));
+        User? user = _auth.currentUser;
+
+        if (user != null) {
+          // Get from Firestore
+          try {
+            DocumentSnapshot doc =
+                await _firestore.collection('users').doc(user.uid).get();
+
+            if (doc.exists && doc.data() != null) {
+              final data = doc.data();
+              if (data is Map<String, dynamic>) {
+                return UserModel.fromMap(data);
+              }
+            }
+          } catch (_) {}
+
+          // Return basic user model
+          return UserModel(
+            uid: user.uid,
+            email: user.email ?? '',
+            isAdmin: false,
+            displayName: user.displayName,
+          );
+        }
+      }
       rethrow;
     }
   }

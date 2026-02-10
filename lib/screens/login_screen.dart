@@ -6,7 +6,7 @@ import 'admin/admin_dashboard.dart';
 import 'user/user_dashboard.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({Key? key}) : super(key: key);
+  const LoginScreen({super.key});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -55,11 +55,11 @@ class _LoginScreenState extends State<LoginScreen> {
         // Navigate based on user role
         if (user.isAdmin) {
           Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (_) => AdminDashboard()),
+            MaterialPageRoute(builder: (_) => const AdminDashboard()),
           );
         } else {
           Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (_) => UserDashboard()),
+            MaterialPageRoute(builder: (_) => const UserDashboard()),
           );
         }
       }
@@ -85,7 +85,7 @@ class _LoginScreenState extends State<LoginScreen> {
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: EdgeInsets.all(24),
+            padding: const EdgeInsets.all(24),
             child: Form(
               key: _formKey,
               child: Column(
@@ -97,8 +97,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     size: 80,
                     color: Theme.of(context).primaryColor,
                   ),
-                  SizedBox(height: 24),
-                  Text(
+                  const SizedBox(height: 24),
+                  const Text(
                     'BLE Attendance',
                     textAlign: TextAlign.center,
                     style: TextStyle(
@@ -106,7 +106,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   Text(
                     _isSignUp ? 'Create your account' : 'Sign in to continue',
                     textAlign: TextAlign.center,
@@ -115,13 +115,13 @@ class _LoginScreenState extends State<LoginScreen> {
                       color: Colors.grey[600],
                     ),
                   ),
-                  SizedBox(height: 48),
+                  const SizedBox(height: 48),
                   TextFormField(
                     controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
                     decoration: InputDecoration(
                       labelText: 'Email',
-                      prefixIcon: Icon(Icons.email),
+                      prefixIcon: const Icon(Icons.email),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
@@ -136,13 +136,13 @@ class _LoginScreenState extends State<LoginScreen> {
                       return null;
                     },
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   TextFormField(
                     controller: _passwordController,
                     obscureText: _obscurePassword,
                     decoration: InputDecoration(
                       labelText: 'Password',
-                      prefixIcon: Icon(Icons.lock),
+                      prefixIcon: const Icon(Icons.lock),
                       suffixIcon: IconButton(
                         icon: Icon(
                           _obscurePassword
@@ -169,13 +169,13 @@ class _LoginScreenState extends State<LoginScreen> {
                       return null;
                     },
                   ),
-                  SizedBox(height: 24),
+                  const SizedBox(height: 24),
                   CustomButton(
                     text: _isSignUp ? 'Sign Up' : 'Sign In',
                     onPressed: _handleAuth,
                     isLoading: _isLoading,
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   TextButton(
                     onPressed: () {
                       setState(() {
@@ -186,7 +186,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       _isSignUp
                           ? 'Already have an account? Sign In'
                           : 'Don\'t have an account? Sign Up',
-                      style: TextStyle(fontSize: 14),
+                      style: const TextStyle(fontSize: 14),
                     ),
                   ),
                 ],

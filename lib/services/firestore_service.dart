@@ -81,6 +81,20 @@ class FirestoreService {
   // Delete event
   Future<void> deleteEvent(String eventId) async {
     try {
+      // First, delete all attendance records for this event
+      QuerySnapshot attendanceQuery = await _firestore
+          .collection('attendance')
+          .where('eventId', isEqualTo: eventId)
+          .get();
+
+      // Delete all attendance records in a batch
+      WriteBatch batch = _firestore.batch();
+      for (var doc in attendanceQuery.docs) {
+        batch.delete(doc.reference);
+      }
+      await batch.commit();
+
+      // Then delete the event itself
       await _firestore.collection('events').doc(eventId).delete();
     } catch (e) {
       print('Delete event error: $e');

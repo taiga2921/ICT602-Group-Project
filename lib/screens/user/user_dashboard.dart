@@ -172,14 +172,14 @@ class _UserDashboardState extends State<UserDashboard> {
             return FutureBuilder<EventModel?>(
               future: _firestoreService.getEventById(attendance.eventId),
               builder: (context, eventSnapshot) {
-                if (!eventSnapshot.hasData) {
-                  return Card(
-                    margin: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                    child: ListTile(
-                      leading: CircleAvatar(child: Icon(Icons.event)),
-                      title: Text('Loading...'),
-                    ),
-                  );
+                // Don't show anything while loading
+                if (eventSnapshot.connectionState == ConnectionState.waiting) {
+                  return SizedBox.shrink();
+                }
+
+                // If event doesn't exist (deleted), don't show this attendance
+                if (!eventSnapshot.hasData || eventSnapshot.data == null) {
+                  return SizedBox.shrink(); // Hide this item
                 }
 
                 final event = eventSnapshot.data!;
@@ -189,7 +189,7 @@ class _UserDashboardState extends State<UserDashboard> {
                   child: ListTile(
                     leading: CircleAvatar(
                       backgroundColor: Colors.green,
-                      child: Icon(Icons.check, color: Colors.white),
+                      child: Icon(Icons.check_circle, color: Colors.white),
                     ),
                     title: Text(
                       event.name,
@@ -204,7 +204,7 @@ class _UserDashboardState extends State<UserDashboard> {
                             Icon(Icons.location_on,
                                 size: 14, color: Colors.grey),
                             SizedBox(width: 4),
-                            Text(event.venue),
+                            Expanded(child: Text(event.venue)),
                           ],
                         ),
                         SizedBox(height: 2),
@@ -213,12 +213,29 @@ class _UserDashboardState extends State<UserDashboard> {
                             Icon(Icons.access_time,
                                 size: 14, color: Colors.grey),
                             SizedBox(width: 4),
-                            Text(dateFormat.format(attendance.checkInTime)),
+                            Text(
+                              dateFormat.format(attendance.checkInTime),
+                              style: TextStyle(fontSize: 12),
+                            ),
                           ],
                         ),
                       ],
                     ),
-                    trailing: Icon(Icons.chevron_right),
+                    trailing: Container(
+                      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.green.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        'Attended',
+                        style: TextStyle(
+                          color: Colors.green,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
                   ),
                 );
               },

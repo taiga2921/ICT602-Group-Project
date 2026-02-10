@@ -100,7 +100,7 @@ class BleService {
 
       // Start scanning
       await FlutterBluePlus.startScan(
-        timeout: Duration(seconds: 4),
+        timeout: const Duration(seconds: 4),
         androidUsesFineLocation: true,
       );
 
@@ -168,10 +168,10 @@ class BleService {
     if (!started) return;
 
     // Restart scan every 5 seconds
-    Timer.periodic(Duration(seconds: 5), (timer) async {
+    Timer.periodic(const Duration(seconds: 5), (timer) async {
       if (_isScanning) {
         await stopScanning();
-        await Future.delayed(Duration(milliseconds: 500));
+        await Future.delayed(const Duration(milliseconds: 500));
         await startScanning();
       } else {
         timer.cancel();

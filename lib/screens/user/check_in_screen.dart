@@ -10,7 +10,7 @@ import '../../services/auth_service.dart';
 class CheckInScreen extends StatefulWidget {
   final EventModel event;
 
-  const CheckInScreen({Key? key, required this.event}) : super(key: key);
+  const CheckInScreen({super.key, required this.event});
 
   @override
   State<CheckInScreen> createState() => _CheckInScreenState();
@@ -135,7 +135,7 @@ class _CheckInScreenState extends State<CheckInScreen> {
   }
 
   void _startContinuousScanning() {
-    Timer.periodic(Duration(seconds: 5), (timer) {
+    Timer.periodic(const Duration(seconds: 5), (timer) {
       if (!mounted || _hasCheckedIn) {
         timer.cancel();
         return;
@@ -143,7 +143,7 @@ class _CheckInScreenState extends State<CheckInScreen> {
 
       if (_isScanning) {
         _bleService.stopScanning().then((_) {
-          Future.delayed(Duration(milliseconds: 500), () {
+          Future.delayed(const Duration(milliseconds: 500), () {
             if (mounted && !_hasCheckedIn) {
               _bleService.startScanning();
             }
@@ -235,14 +235,14 @@ class _CheckInScreenState extends State<CheckInScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Permissions Required'),
-        content: Text(
+        title: const Text('Permissions Required'),
+        content: const Text(
           'This app needs Bluetooth and Location permissions to detect the beacon for automatic check-in.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('OK'),
+            child: const Text('OK'),
           ),
         ],
       ),
@@ -254,7 +254,7 @@ class _CheckInScreenState extends State<CheckInScreen> {
       context: context,
       barrierDismissible: false,
       builder: (context) => AlertDialog(
-        title: Row(
+        title: const Row(
           children: [
             Icon(Icons.check_circle, color: Colors.green, size: 30),
             SizedBox(width: 8),
@@ -265,13 +265,13 @@ class _CheckInScreenState extends State<CheckInScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('You have successfully checked in to:'),
-            SizedBox(height: 8),
+            const Text('You have successfully checked in to:'),
+            const SizedBox(height: 8),
             Text(
               widget.event.name,
-              style: TextStyle(fontWeight: FontWeight.bold),
+              style: const TextStyle(fontWeight: FontWeight.bold),
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Text(
               'Time: ${DateTime.now().toString().substring(0, 19)}',
               style: TextStyle(color: Colors.grey[600]),
@@ -284,7 +284,7 @@ class _CheckInScreenState extends State<CheckInScreen> {
               Navigator.pop(context);
               Navigator.pop(context);
             },
-            child: Text('Done'),
+            child: const Text('Done'),
           ),
         ],
       ),
@@ -300,16 +300,16 @@ class _CheckInScreenState extends State<CheckInScreen> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Text('Auto Check-In'),
+          title: const Text('Auto Check-In'),
         ),
         body: Center(
           child: Padding(
-            padding: EdgeInsets.all(24),
+            padding: const EdgeInsets.all(24),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 if (_isScanning && !_hasCheckedIn) ...[
-                  Container(
+                  SizedBox(
                     width: 120,
                     height: 120,
                     child: Stack(
@@ -334,28 +334,28 @@ class _CheckInScreenState extends State<CheckInScreen> {
                     ),
                   ),
                 ] else if (_hasCheckedIn) ...[
-                  Icon(
+                  const Icon(
                     Icons.check_circle,
                     size: 120,
                     color: Colors.green,
                   ),
                 ] else ...[
-                  Icon(
+                  const Icon(
                     Icons.bluetooth_disabled,
                     size: 120,
                     color: Colors.grey,
                   ),
                 ],
-                SizedBox(height: 32),
+                const SizedBox(height: 32),
                 Text(
                   widget.event.name,
                   textAlign: TextAlign.center,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 Text(
                   _statusMessage,
                   textAlign: TextAlign.center,
@@ -364,15 +364,15 @@ class _CheckInScreenState extends State<CheckInScreen> {
                     color: Colors.grey[700],
                   ),
                 ),
-                SizedBox(height: 32),
+                const SizedBox(height: 32),
                 if (_isScanning && !_hasCheckedIn)
                   Container(
-                    padding: EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       color: Colors.blue[50],
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: Row(
+                    child: const Row(
                       children: [
                         Icon(Icons.info_outline, color: Colors.blue),
                         SizedBox(width: 12),
@@ -388,11 +388,11 @@ class _CheckInScreenState extends State<CheckInScreen> {
                 if (!_isScanning && !_hasCheckedIn)
                   ElevatedButton.icon(
                     onPressed: _startBleScanning,
-                    icon: Icon(Icons.refresh),
-                    label: Text('Retry'),
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Retry'),
                     style: ElevatedButton.styleFrom(
                       padding:
-                          EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                          const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
                     ),
                   ),
               ],
