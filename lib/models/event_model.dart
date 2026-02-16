@@ -11,6 +11,8 @@ class EventModel {
   final int beaconMinor;
   final bool isActive;
   final DateTime createdAt;
+  final double? latitude; // GPS coordinates
+  final double? longitude; // GPS coordinates
 
   EventModel({
     required this.id,
@@ -23,6 +25,8 @@ class EventModel {
     required this.beaconMinor,
     required this.isActive,
     required this.createdAt,
+    this.latitude,
+    this.longitude,
   });
 
   // Convert EventModel to Map for Firebase
@@ -38,6 +42,8 @@ class EventModel {
       'beaconMinor': beaconMinor,
       'isActive': isActive,
       'createdAt': Timestamp.fromDate(createdAt),
+      'latitude': latitude,
+      'longitude': longitude,
     };
   }
 
@@ -54,6 +60,8 @@ class EventModel {
       beaconMinor: map['beaconMinor'] ?? 0,
       isActive: map['isActive'] ?? false,
       createdAt: (map['createdAt'] as Timestamp).toDate(),
+      latitude: map['latitude']?.toDouble(),
+      longitude: map['longitude']?.toDouble(),
     );
   }
 
@@ -75,6 +83,8 @@ class EventModel {
     int? beaconMinor,
     bool? isActive,
     DateTime? createdAt,
+    double? latitude,
+    double? longitude,
   }) {
     return EventModel(
       id: id ?? this.id,
@@ -87,6 +97,8 @@ class EventModel {
       beaconMinor: beaconMinor ?? this.beaconMinor,
       isActive: isActive ?? this.isActive,
       createdAt: createdAt ?? this.createdAt,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
     );
   }
 }

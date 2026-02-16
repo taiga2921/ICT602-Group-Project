@@ -10,8 +10,7 @@ class FirestoreService {
   // Create a new event
   Future<String> createEvent(EventModel event) async {
     try {
-      DocumentReference docRef =
-          await _firestore.collection('events').add(event.toMap());
+      DocumentReference docRef = await _firestore.collection('events').add(event.toMap());
       return docRef.id;
     } catch (e) {
       print('Create event error: $e');
@@ -30,7 +29,7 @@ class FirestoreService {
       final events = snapshot.docs.map((doc) {
         return EventModel.fromMap(doc.id, doc.data());
       }).toList();
-
+      
       // Sort by startTime
       events.sort((a, b) => a.startTime.compareTo(b.startTime));
       return events;
@@ -53,8 +52,7 @@ class FirestoreService {
   // Get single event by ID
   Future<EventModel?> getEventById(String eventId) async {
     try {
-      DocumentSnapshot doc =
-          await _firestore.collection('events').doc(eventId).get();
+      DocumentSnapshot doc = await _firestore.collection('events').doc(eventId).get();
       if (doc.exists && doc.data() != null) {
         final data = doc.data();
         if (data is Map<String, dynamic>) {
@@ -86,14 +84,14 @@ class FirestoreService {
           .collection('attendance')
           .where('eventId', isEqualTo: eventId)
           .get();
-
+      
       // Delete all attendance records in a batch
       WriteBatch batch = _firestore.batch();
       for (var doc in attendanceQuery.docs) {
         batch.delete(doc.reference);
       }
       await batch.commit();
-
+      
       // Then delete the event itself
       await _firestore.collection('events').doc(eventId).delete();
     } catch (e) {
@@ -113,7 +111,7 @@ class FirestoreService {
           .where('eventId', isEqualTo: eventId)
           .limit(1)
           .get();
-
+      
       return query.docs.isNotEmpty;
     } catch (e) {
       print('Check attendance error: $e');
@@ -125,17 +123,20 @@ class FirestoreService {
   Future<String?> createAttendance(AttendanceModel attendance) async {
     try {
       // Double-check if user already checked in
-      bool alreadyCheckedIn =
-          await hasUserCheckedIn(attendance.userId, attendance.eventId);
-
+      bool alreadyCheckedIn = await hasUserCheckedIn(
+        attendance.userId, 
+        attendance.eventId
+      );
+      
       if (alreadyCheckedIn) {
         print('User already checked in for this event');
         return null;
       }
 
-      DocumentReference docRef =
-          await _firestore.collection('attendance').add(attendance.toMap());
-
+      DocumentReference docRef = await _firestore
+          .collection('attendance')
+          .add(attendance.toMap());
+      
       return docRef.id;
     } catch (e) {
       print('Create attendance error: $e');
@@ -154,7 +155,7 @@ class FirestoreService {
       final attendanceList = snapshot.docs.map((doc) {
         return AttendanceModel.fromMap(doc.id, doc.data());
       }).toList();
-
+      
       // Sort by checkInTime descending (most recent first)
       attendanceList.sort((a, b) => b.checkInTime.compareTo(a.checkInTime));
       return attendanceList;
@@ -168,7 +169,7 @@ class FirestoreService {
           .collection('attendance')
           .where('eventId', isEqualTo: eventId)
           .get();
-
+      
       return query.docs.length;
     } catch (e) {
       print('Get attendance count error: $e');
@@ -187,7 +188,7 @@ class FirestoreService {
       final attendanceList = snapshot.docs.map((doc) {
         return AttendanceModel.fromMap(doc.id, doc.data());
       }).toList();
-
+      
       // Sort by checkInTime descending
       attendanceList.sort((a, b) => b.checkInTime.compareTo(a.checkInTime));
       return attendanceList;
@@ -195,8 +196,7 @@ class FirestoreService {
   }
 
   // Get specific attendance record
-  Future<AttendanceModel?> getAttendanceRecord(
-      String userId, String eventId) async {
+  Future<AttendanceModel?> getAttendanceRecord(String userId, String eventId) async {
     try {
       QuerySnapshot query = await _firestore
           .collection('attendance')
@@ -204,7 +204,7 @@ class FirestoreService {
           .where('eventId', isEqualTo: eventId)
           .limit(1)
           .get();
-
+      
       if (query.docs.isNotEmpty) {
         final doc = query.docs.first;
         final data = doc.data();

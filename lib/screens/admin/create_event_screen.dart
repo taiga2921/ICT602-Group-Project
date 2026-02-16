@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../services/firestore_service.dart';
+import '../../services/gps_service.dart';
 import '../../models/event_model.dart';
 import '../../widgets/custom_button.dart';
+import 'package:geolocator/geolocator.dart';
 
 class CreateEventScreen extends StatefulWidget {
-  const CreateEventScreen({super.key});
+  const CreateEventScreen({Key? key}) : super(key: key);
 
   @override
   State<CreateEventScreen> createState() => _CreateEventScreenState();
@@ -14,6 +16,7 @@ class CreateEventScreen extends StatefulWidget {
 class _CreateEventScreenState extends State<CreateEventScreen> {
   final _formKey = GlobalKey<FormState>();
   final _firestoreService = FirestoreService();
+  final _gpsService = GpsService();
 
   final _nameController = TextEditingController();
   final _venueController = TextEditingController();
@@ -24,9 +27,11 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
   DateTime _startDate = DateTime.now();
   TimeOfDay _startTime = TimeOfDay.now();
   DateTime _endDate = DateTime.now();
-  TimeOfDay _endTime = const TimeOfDay(hour: 23, minute: 59);
+  TimeOfDay _endTime = TimeOfDay(hour: 23, minute: 59);
 
   bool _isLoading = false;
+  Position? _currentLocation;
+  bool _isLoadingLocation = false;
 
   @override
   void dispose() {
@@ -38,12 +43,38 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
     super.dispose();
   }
 
+  Future<void> _getCurrentLocation() async {
+    setState(() => _isLoadingLocation = true);
+
+    try {
+      Position? position = await _gpsService.getCurrentLocation();
+      if (position != null) {
+        setState(() {
+          _currentLocation = position;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Location captured successfully')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to get location. Please enable GPS.')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    } finally {
+      setState(() => _isLoadingLocation = false);
+    }
+  }
+
   Future<void> _selectDate(BuildContext context, bool isStart) async {
     final picked = await showDatePicker(
       context: context,
       initialDate: isStart ? _startDate : _endDate,
       firstDate: DateTime.now(),
-      lastDate: DateTime.now().add(const Duration(days: 365)),
+      lastDate: DateTime.now().add(Duration(days: 365)),
     );
 
     if (picked != null) {
@@ -106,24 +137,26 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
         startTime: startDateTime,
         endTime: endDateTime,
         venue: _venueController.text.trim(),
-        beaconUuid: _beaconUuidController.text.trim().isEmpty 
-            ? 'N/A' 
+        beaconUuid: _beaconUuidController.text.trim().isEmpty
+            ? 'N/A'
             : _beaconUuidController.text.trim(),
-        beaconMajor: _beaconMajorController.text.isEmpty 
-            ? 0 
+        beaconMajor: _beaconMajorController.text.isEmpty
+            ? 0
             : int.parse(_beaconMajorController.text),
-        beaconMinor: _beaconMinorController.text.isEmpty 
-            ? 0 
+        beaconMinor: _beaconMinorController.text.isEmpty
+            ? 0
             : int.parse(_beaconMinorController.text),
         isActive: true,
         createdAt: DateTime.now(),
+        latitude: _currentLocation?.latitude,
+        longitude: _currentLocation?.longitude,
       );
 
       await _firestoreService.createEvent(event);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Event created successfully')),
+          SnackBar(content: Text('Event created successfully')),
         );
         Navigator.pop(context);
       }
@@ -150,23 +183,23 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Create Event'),
+        title: Text('Create Event'),
       ),
       body: Form(
         key: _formKey,
         child: ListView(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.all(16),
           children: [
-            const Text(
+            Text(
               'Event Details',
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             TextFormField(
               controller: _nameController,
               decoration: InputDecoration(
                 labelText: 'Event Name',
-                prefixIcon: const Icon(Icons.event),
+                prefixIcon: Icon(Icons.event),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
@@ -178,12 +211,12 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                 return null;
               },
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             TextFormField(
               controller: _venueController,
               decoration: InputDecoration(
                 labelText: 'Venue / Entrance',
-                prefixIcon: const Icon(Icons.location_on),
+                prefixIcon: Icon(Icons.location_on),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
@@ -195,30 +228,84 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                 return null;
               },
             ),
-            const SizedBox(height: 24),
-            const Text(
+            SizedBox(height: 24),
+            Text(
+              'GPS Location (Optional)',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 16),
+            Container(
+              padding: EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Column(
+                children: [
+                  if (_currentLocation != null) ...[
+                    Row(
+                      children: [
+                        Icon(Icons.location_on, color: Colors.green),
+                        SizedBox(width: 8),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Latitude: ${_currentLocation!.latitude.toStringAsFixed(6)}',
+                                style: TextStyle(fontSize: 12),
+                              ),
+                              Text(
+                                'Longitude: ${_currentLocation!.longitude.toStringAsFixed(6)}',
+                                style: TextStyle(fontSize: 12),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 8),
+                  ],
+                  ElevatedButton.icon(
+                    onPressed: _isLoadingLocation ? null : _getCurrentLocation,
+                    icon: _isLoadingLocation
+                        ? SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : Icon(Icons.my_location),
+                    label: Text(_currentLocation == null
+                        ? 'Capture Event Location'
+                        : 'Update Location'),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(height: 24),
+            Text(
               'Date & Time',
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             Row(
               children: [
                 Expanded(
                   child: ListTile(
-                    title: const Text('Start Date'),
+                    title: Text('Start Date'),
                     subtitle: Text(dateFormat.format(_startDate)),
-                    leading: const Icon(Icons.calendar_today),
+                    leading: Icon(Icons.calendar_today),
                     onTap: () => _selectDate(context, true),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
-                      side: const BorderSide(color: Colors.grey),
+                      side: BorderSide(color: Colors.grey),
                     ),
                   ),
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 Expanded(
                   child: ListTile(
-                    title: const Text('Start Time'),
+                    title: Text('Start Time'),
                     subtitle: Text(timeFormat.format(DateTime(
                       2024,
                       1,
@@ -226,35 +313,35 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                       _startTime.hour,
                       _startTime.minute,
                     ))),
-                    leading: const Icon(Icons.access_time),
+                    leading: Icon(Icons.access_time),
                     onTap: () => _selectTime(context, true),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
-                      side: const BorderSide(color: Colors.grey),
+                      side: BorderSide(color: Colors.grey),
                     ),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             Row(
               children: [
                 Expanded(
                   child: ListTile(
-                    title: const Text('End Date'),
+                    title: Text('End Date'),
                     subtitle: Text(dateFormat.format(_endDate)),
-                    leading: const Icon(Icons.calendar_today),
+                    leading: Icon(Icons.calendar_today),
                     onTap: () => _selectDate(context, false),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
-                      side: const BorderSide(color: Colors.grey),
+                      side: BorderSide(color: Colors.grey),
                     ),
                   ),
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 Expanded(
                   child: ListTile(
-                    title: const Text('End Time'),
+                    title: Text('End Time'),
                     subtitle: Text(timeFormat.format(DateTime(
                       2024,
                       1,
@@ -262,27 +349,27 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                       _endTime.hour,
                       _endTime.minute,
                     ))),
-                    leading: const Icon(Icons.access_time),
+                    leading: Icon(Icons.access_time),
                     onTap: () => _selectTime(context, false),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
-                      side: const BorderSide(color: Colors.grey),
+                      side: BorderSide(color: Colors.grey),
                     ),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 24),
-            const Text(
+            SizedBox(height: 24),
+            Text(
               'Beacon Configuration',
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             TextFormField(
               controller: _beaconUuidController,
               decoration: InputDecoration(
                 labelText: 'Beacon UUID (Optional)',
-                prefixIcon: const Icon(Icons.bluetooth),
+                prefixIcon: Icon(Icons.bluetooth),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
@@ -290,7 +377,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                 helperText: 'Leave blank if unknown',
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             Row(
               children: [
                 Expanded(
@@ -299,7 +386,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                     keyboardType: TextInputType.number,
                     decoration: InputDecoration(
                       labelText: 'Major (Optional)',
-                      prefixIcon: const Icon(Icons.numbers),
+                      prefixIcon: Icon(Icons.numbers),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
@@ -307,14 +394,14 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(width: 16),
+                SizedBox(width: 16),
                 Expanded(
                   child: TextFormField(
                     controller: _beaconMinorController,
                     keyboardType: TextInputType.number,
                     decoration: InputDecoration(
                       labelText: 'Minor (Optional)',
-                      prefixIcon: const Icon(Icons.numbers),
+                      prefixIcon: Icon(Icons.numbers),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
@@ -324,7 +411,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 32),
+            SizedBox(height: 32),
             CustomButton(
               text: 'Create Event',
               onPressed: _createEvent,

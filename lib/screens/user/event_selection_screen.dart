@@ -2,12 +2,56 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../models/event_model.dart';
 import '../../widgets/custom_button.dart';
+import '../../services/ble_service.dart';
+import '../../services/gps_service.dart';
 import 'check_in_screen.dart';
+import 'package:geolocator/geolocator.dart';
 
-class EventSelectionScreen extends StatelessWidget {
+class EventSelectionScreen extends StatefulWidget {
   final EventModel event;
 
-  const EventSelectionScreen({super.key, required this.event});
+  const EventSelectionScreen({Key? key, required this.event}) : super(key: key);
+
+  @override
+  State<EventSelectionScreen> createState() => _EventSelectionScreenState();
+}
+
+class _EventSelectionScreenState extends State<EventSelectionScreen> {
+  final _bleService = BleService();
+  final _gpsService = GpsService();
+
+  Future<void> _startMonitoring() async {
+    // Check and request permissions before navigating
+    final blePermissions = await _bleService.requestPermissions();
+    final gpsPermission = await _gpsService.requestPermission();
+
+    if (!blePermissions || gpsPermission == LocationPermission.denied) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Bluetooth and Location permissions are required'),
+            action: SnackBarAction(
+              label: 'Settings',
+              onPressed: () async {
+                await _bleService.requestPermissions();
+              },
+            ),
+          ),
+        );
+      }
+      return;
+    }
+
+    // Navigate to check-in screen
+    if (mounted) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => CheckInScreen(event: widget.event),
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -16,7 +60,7 @@ class EventSelectionScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Event Details'),
+        title: Text('Event Details'),
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -24,10 +68,10 @@ class EventSelectionScreen extends StatelessWidget {
           children: [
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.all(24),
+              padding: EdgeInsets.all(24),
               decoration: BoxDecoration(
                 color: Theme.of(context).primaryColor,
-                borderRadius: const BorderRadius.only(
+                borderRadius: BorderRadius.only(
                   bottomLeft: Radius.circular(30),
                   bottomRight: Radius.circular(30),
                 ),
@@ -36,24 +80,26 @@ class EventSelectionScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.2),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
-                      event.isEventActive() ? 'ACTIVE NOW' : 'UPCOMING',
-                      style: const TextStyle(
+                      widget.event.isEventActive()
+                          ? 'ACTIVE NOW'
+                          : 'UPCOMING', // ← widget.event
+                      style: TextStyle(
                         color: Colors.white,
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                   Text(
-                    event.name,
-                    style: const TextStyle(
+                    widget.event.name, // ← widget.event
+                    style: TextStyle(
                       color: Colors.white,
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
@@ -63,38 +109,38 @@ class EventSelectionScreen extends StatelessWidget {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.all(24),
+              padding: EdgeInsets.all(24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Event Information',
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  SizedBox(height: 20),
                   _buildInfoTile(
                     Icons.location_on,
                     'Venue',
-                    event.venue,
+                    widget.event.venue,
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                   _buildInfoTile(
                     Icons.calendar_today,
                     'Date',
-                    dateFormat.format(event.startTime),
+                    dateFormat.format(widget.event.startTime),
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                   _buildInfoTile(
                     Icons.access_time,
                     'Time',
-                    '${timeFormat.format(event.startTime)} - ${timeFormat.format(event.endTime)}',
+                    '${timeFormat.format(widget.event.startTime)} - ${timeFormat.format(widget.event.endTime)}',
                   ),
-                  const SizedBox(height: 32),
+                  SizedBox(height: 32),
                   Container(
-                    padding: const EdgeInsets.all(16),
+                    padding: EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       color: Colors.blue[50],
                       borderRadius: BorderRadius.circular(12),
@@ -103,10 +149,10 @@ class EventSelectionScreen extends StatelessWidget {
                     child: Row(
                       children: [
                         Icon(Icons.info_outline, color: Colors.blue[700]),
-                        const SizedBox(width: 12),
+                        SizedBox(width: 12),
                         Expanded(
                           child: Text(
-                            'Automatic check-in will start when you\'re near the event venue. Make sure Bluetooth is enabled.',
+                            'Automatic check-in will start when you\'re near the event venue. Make sure Bluetooth and Location are enabled.',
                             style: TextStyle(
                               fontSize: 14,
                               color: Colors.blue[900],
@@ -116,18 +162,11 @@ class EventSelectionScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 32),
+                  SizedBox(height: 32),
                   CustomButton(
                     text: 'Start Monitoring',
                     icon: Icons.bluetooth_searching,
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => CheckInScreen(event: event),
-                        ),
-                      );
-                    },
+                    onPressed: _startMonitoring,
                   ),
                 ],
               ),
@@ -143,14 +182,14 @@ class EventSelectionScreen extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          padding: const EdgeInsets.all(12),
+          padding: EdgeInsets.all(12),
           decoration: BoxDecoration(
             color: Colors.grey[200],
             borderRadius: BorderRadius.circular(12),
           ),
           child: Icon(icon, size: 24),
         ),
-        const SizedBox(width: 16),
+        SizedBox(width: 16),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -163,10 +202,10 @@ class EventSelectionScreen extends StatelessWidget {
                   fontWeight: FontWeight.w500,
                 ),
               ),
-              const SizedBox(height: 4),
+              SizedBox(height: 4),
               Text(
                 value,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                 ),

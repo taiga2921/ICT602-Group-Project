@@ -8,6 +8,8 @@ class AttendanceModel {
   final DateTime checkInTime;
   final String? userEmail;
   final String? userName;
+  final double? latitude; // User's GPS location at check-in
+  final double? longitude; // User's GPS location at check-in
 
   AttendanceModel({
     required this.id,
@@ -17,6 +19,8 @@ class AttendanceModel {
     required this.checkInTime,
     this.userEmail,
     this.userName,
+    this.latitude,
+    this.longitude,
   });
 
   // Convert AttendanceModel to Map for Firebase
@@ -28,6 +32,8 @@ class AttendanceModel {
       'checkInTime': Timestamp.fromDate(checkInTime),
       'userEmail': userEmail,
       'userName': userName,
+      'latitude': latitude,
+      'longitude': longitude,
     };
   }
 
@@ -41,6 +47,8 @@ class AttendanceModel {
       checkInTime: (map['checkInTime'] as Timestamp).toDate(),
       userEmail: map['userEmail'],
       userName: map['userName'],
+      latitude: map['latitude']?.toDouble(),
+      longitude: map['longitude']?.toDouble(),
     );
   }
 
@@ -53,6 +61,8 @@ class AttendanceModel {
     DateTime? checkInTime,
     String? userEmail,
     String? userName,
+    double? latitude,
+    double? longitude,
   }) {
     return AttendanceModel(
       id: id ?? this.id,
@@ -62,6 +72,8 @@ class AttendanceModel {
       checkInTime: checkInTime ?? this.checkInTime,
       userEmail: userEmail ?? this.userEmail,
       userName: userName ?? this.userName,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
     );
   }
 }

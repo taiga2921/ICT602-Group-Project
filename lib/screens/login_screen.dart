@@ -99,7 +99,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 24),
                   const Text(
-                    'BLE Attendance',
+                    'Attendance Record System',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 32,

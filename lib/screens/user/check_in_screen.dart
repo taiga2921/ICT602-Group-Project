@@ -1,16 +1,18 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:geolocator/geolocator.dart';
 import '../../models/event_model.dart';
 import '../../models/attendance_model.dart';
 import '../../services/ble_service.dart';
 import '../../services/firestore_service.dart';
 import '../../services/auth_service.dart';
+import '../../services/gps_service.dart';
 
 class CheckInScreen extends StatefulWidget {
   final EventModel event;
 
-  const CheckInScreen({super.key, required this.event});
+  const CheckInScreen({Key? key, required this.event}) : super(key: key);
 
   @override
   State<CheckInScreen> createState() => _CheckInScreenState();
@@ -20,11 +22,14 @@ class _CheckInScreenState extends State<CheckInScreen> {
   final _bleService = BleService();
   final _firestoreService = FirestoreService();
   final _authService = AuthService();
+  final _gpsService = GpsService();
 
   bool _isScanning = false;
   bool _hasCheckedIn = false;
   String _statusMessage = 'Initializing...';
   StreamSubscription? _beaconSubscription;
+  Position? _currentLocation;
+  String _gpsStatus = 'Getting GPS location...';
 
   @override
   void initState() {
@@ -40,6 +45,26 @@ class _CheckInScreenState extends State<CheckInScreen> {
   }
 
   Future<void> _initializeCheckIn() async {
+    // Get GPS location first
+    try {
+      Position? position = await _gpsService.getCurrentLocation();
+      if (position != null) {
+        setState(() {
+          _currentLocation = position;
+          _gpsStatus =
+              'GPS: ${position.latitude.toStringAsFixed(4)}, ${position.longitude.toStringAsFixed(4)}';
+        });
+      } else {
+        setState(() {
+          _gpsStatus = 'GPS location unavailable';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _gpsStatus = 'GPS error: $e';
+      });
+    }
+
     // Check if user already checked in
     final userId = _authService.currentUser?.uid;
     if (userId == null) {
@@ -76,7 +101,7 @@ class _CheckInScreenState extends State<CheckInScreen> {
 
   Future<void> _startBleScanning() async {
     setState(() {
-      _statusMessage = 'Checking Bluetooth permissions...';
+      _statusMessage = 'Checking permissions...';
     });
 
     // Check if Bluetooth is supported
@@ -88,11 +113,22 @@ class _CheckInScreenState extends State<CheckInScreen> {
       return;
     }
 
-    // Request permissions
+    // Request Bluetooth and Location permissions
     final hasPermissions = await _bleService.requestPermissions();
     if (!hasPermissions) {
       setState(() {
-        _statusMessage = 'Bluetooth permissions not granted';
+        _statusMessage = 'Permissions not granted';
+      });
+      _showPermissionDialog();
+      return;
+    }
+
+    // Also ensure GPS service can access location
+    final gpsPermission = await _gpsService.checkPermission();
+    if (gpsPermission == LocationPermission.denied ||
+        gpsPermission == LocationPermission.deniedForever) {
+      setState(() {
+        _statusMessage = 'Location permission required for GPS tracking';
       });
       _showPermissionDialog();
       return;
@@ -105,6 +141,19 @@ class _CheckInScreenState extends State<CheckInScreen> {
         _statusMessage = 'Please enable Bluetooth';
       });
       await _bleService.enableBluetooth();
+      return;
+    }
+
+    // Check if Location service is enabled
+    final locationEnabled = await _gpsService.isLocationServiceEnabled();
+    if (!locationEnabled) {
+      setState(() {
+        _statusMessage = 'Please enable Location services';
+      });
+      final opened = await _gpsService.openLocationSettings();
+      if (!opened) {
+        _showLocationSettingsDialog();
+      }
       return;
     }
 
@@ -135,7 +184,7 @@ class _CheckInScreenState extends State<CheckInScreen> {
   }
 
   void _startContinuousScanning() {
-    Timer.periodic(const Duration(seconds: 5), (timer) {
+    Timer.periodic(Duration(seconds: 5), (timer) {
       if (!mounted || _hasCheckedIn) {
         timer.cancel();
         return;
@@ -143,7 +192,7 @@ class _CheckInScreenState extends State<CheckInScreen> {
 
       if (_isScanning) {
         _bleService.stopScanning().then((_) {
-          Future.delayed(const Duration(milliseconds: 500), () {
+          Future.delayed(Duration(milliseconds: 500), () {
             if (mounted && !_hasCheckedIn) {
               _bleService.startScanning();
             }
@@ -203,6 +252,8 @@ class _CheckInScreenState extends State<CheckInScreen> {
         checkInTime: DateTime.now(),
         userEmail: user?.email,
         userName: user?.displayName,
+        latitude: _currentLocation?.latitude,
+        longitude: _currentLocation?.longitude,
       );
 
       final attendanceId = await _firestoreService.createAttendance(attendance);
@@ -235,14 +286,49 @@ class _CheckInScreenState extends State<CheckInScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Permissions Required'),
-        content: const Text(
-          'This app needs Bluetooth and Location permissions to detect the beacon for automatic check-in.',
+        title: Text('Permissions Required'),
+        content: Text(
+          'This app needs:\n\n'
+          '• Bluetooth permission - to detect the beacon\n'
+          '• Location permission - for BLE scanning and GPS tracking\n\n'
+          'Please grant these permissions in Settings.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
+            child: Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _bleService.requestPermissions();
+            },
+            child: Text('Grant Permissions'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showLocationSettingsDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Location Services Disabled'),
+        content: Text(
+          'Please enable Location services in your device settings to use GPS tracking and BLE scanning.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _gpsService.openLocationSettings();
+            },
+            child: Text('Open Settings'),
           ),
         ],
       ),
@@ -254,7 +340,7 @@ class _CheckInScreenState extends State<CheckInScreen> {
       context: context,
       barrierDismissible: false,
       builder: (context) => AlertDialog(
-        title: const Row(
+        title: Row(
           children: [
             Icon(Icons.check_circle, color: Colors.green, size: 30),
             SizedBox(width: 8),
@@ -265,13 +351,13 @@ class _CheckInScreenState extends State<CheckInScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('You have successfully checked in to:'),
-            const SizedBox(height: 8),
+            Text('You have successfully checked in to:'),
+            SizedBox(height: 8),
             Text(
               widget.event.name,
-              style: const TextStyle(fontWeight: FontWeight.bold),
+              style: TextStyle(fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
             Text(
               'Time: ${DateTime.now().toString().substring(0, 19)}',
               style: TextStyle(color: Colors.grey[600]),
@@ -284,7 +370,7 @@ class _CheckInScreenState extends State<CheckInScreen> {
               Navigator.pop(context);
               Navigator.pop(context);
             },
-            child: const Text('Done'),
+            child: Text('Done'),
           ),
         ],
       ),
@@ -300,16 +386,16 @@ class _CheckInScreenState extends State<CheckInScreen> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Auto Check-In'),
+          title: Text('Auto Check-In'),
         ),
         body: Center(
           child: Padding(
-            padding: const EdgeInsets.all(24),
+            padding: EdgeInsets.all(24),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 if (_isScanning && !_hasCheckedIn) ...[
-                  SizedBox(
+                  Container(
                     width: 120,
                     height: 120,
                     child: Stack(
@@ -334,28 +420,62 @@ class _CheckInScreenState extends State<CheckInScreen> {
                     ),
                   ),
                 ] else if (_hasCheckedIn) ...[
-                  const Icon(
+                  Icon(
                     Icons.check_circle,
                     size: 120,
                     color: Colors.green,
                   ),
                 ] else ...[
-                  const Icon(
+                  Icon(
                     Icons.bluetooth_disabled,
                     size: 120,
                     color: Colors.grey,
                   ),
                 ],
-                const SizedBox(height: 32),
+                SizedBox(height: 32),
+                if (_currentLocation != null)
+                  Container(
+                    padding: EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.green[50],
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.green[200]!),
+                    ),
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            Icon(Icons.gps_fixed,
+                                color: Colors.green, size: 20),
+                            SizedBox(width: 8),
+                            Text(
+                              'GPS Location Captured',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          _gpsStatus,
+                          style:
+                              TextStyle(fontSize: 12, color: Colors.grey[700]),
+                        ),
+                      ],
+                    ),
+                  ),
+                SizedBox(height: 16),
                 Text(
                   widget.event.name,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
                 Text(
                   _statusMessage,
                   textAlign: TextAlign.center,
@@ -364,15 +484,15 @@ class _CheckInScreenState extends State<CheckInScreen> {
                     color: Colors.grey[700],
                   ),
                 ),
-                const SizedBox(height: 32),
+                SizedBox(height: 32),
                 if (_isScanning && !_hasCheckedIn)
                   Container(
-                    padding: const EdgeInsets.all(16),
+                    padding: EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       color: Colors.blue[50],
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Row(
+                    child: Row(
                       children: [
                         Icon(Icons.info_outline, color: Colors.blue),
                         SizedBox(width: 12),
@@ -388,11 +508,11 @@ class _CheckInScreenState extends State<CheckInScreen> {
                 if (!_isScanning && !_hasCheckedIn)
                   ElevatedButton.icon(
                     onPressed: _startBleScanning,
-                    icon: const Icon(Icons.refresh),
-                    label: const Text('Retry'),
+                    icon: Icon(Icons.refresh),
+                    label: Text('Retry'),
                     style: ElevatedButton.styleFrom(
                       padding:
-                          const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                          EdgeInsets.symmetric(horizontal: 32, vertical: 16),
                     ),
                   ),
               ],
