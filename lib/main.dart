@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'firebase_options.dart';
 import 'services/auth_service.dart';
 import 'screens/login_screen.dart';
 import 'screens/admin/admin_dashboard.dart';
@@ -9,8 +10,13 @@ import 'screens/user/user_dashboard.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Firebase
-  await Firebase.initializeApp();
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  } catch (e) {
+    // Ignore duplicate-app error
+  }
 
   runApp(const MyApp());
 }
@@ -21,7 +27,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Attendance Record System',
+      title: 'BLE Attendance App',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         primarySwatch: Colors.blue,
@@ -45,7 +51,7 @@ class MyApp extends StatelessWidget {
 class AuthWrapper extends StatelessWidget {
   final AuthService _authService = AuthService();
 
-  AuthWrapper({super.key});
+  AuthWrapper({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -54,16 +60,12 @@ class AuthWrapper extends StatelessWidget {
       builder: (context, snapshot) {
         // Show loading while checking auth state
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(
-            body: Center(
-              child: CircularProgressIndicator(),
-            ),
-          );
+          return Scaffold(body: Center(child: CircularProgressIndicator()));
         }
 
         // User is not logged in
         if (!snapshot.hasData) {
-          return const LoginScreen();
+          return LoginScreen();
         }
 
         // User is logged in - check if admin or regular user
@@ -71,20 +73,16 @@ class AuthWrapper extends StatelessWidget {
           future: _authService.isUserAdmin(),
           builder: (context, adminSnapshot) {
             if (adminSnapshot.connectionState == ConnectionState.waiting) {
-              return const Scaffold(
-                body: Center(
-                  child: CircularProgressIndicator(),
-                ),
-              );
+              return Scaffold(body: Center(child: CircularProgressIndicator()));
             }
 
             final isAdmin = adminSnapshot.data ?? false;
 
             // Navigate based on user role
             if (isAdmin) {
-              return const AdminDashboard();
+              return AdminDashboard();
             } else {
-              return const UserDashboard();
+              return UserDashboard();
             }
           },
         );

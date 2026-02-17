@@ -11,9 +11,9 @@ dependencies:
       sdk: flutter
 
    # Firebase - Using compatible versions
-   firebase_core: ^2.27.0
-   firebase_auth: ^4.17.8
-   cloud_firestore: ^4.15.8
+   firebase_core: ^3.6.0
+   firebase_auth: ^5.0.0
+   cloud_firestore: ^5.6.12
 
    # BLE
    flutter_blue_plus: ^1.30.0
@@ -28,9 +28,9 @@ dependencies:
    provider: ^6.1.1
 
    # PDF Generation
-   pdf: ^3.10.7
-   printing: ^5.11.1
-   path_provider: ^2.1.1
+   pdf: ^3.11.1
+   printing: ^5.13.2
+   path_provider: ^2.1.5
 
    # UI
    intl: ^0.18.1
