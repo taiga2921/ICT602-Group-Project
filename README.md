@@ -1,6 +1,7 @@
 # Attendance Record System
 
 Youtube Video Link: [Link]()
+Backup Link: [Link]()
 
 ---
 
@@ -18,14 +19,14 @@ Group Member:
 ## Login Credential
 
 Admin:
-admin@mobile.com
-12345678
+Email: admin@mobile.com
+Pass: 12345678
 
 User:
-testuser@test.com
-12346578
+Email: testuser@test.com
+Pass: 12346578
 
-User can be added with sign up funtion
+_User can be added with sign up funtion_
 
 ---
 
