@@ -19,12 +19,12 @@ Group Member:
 ## Login Credential
 
 Admin:
-Email: admin@mobile.com
-Pass: 12345678
+- Email: admin@mobile.com
+- Pass: 12345678
 
 User:
-Email: testuser@test.com
-Pass: 12346578
+- Email: testuser@test.com
+- Pass: 12346578
 
 _User can be added with sign up funtion_
 
