@@ -364,6 +364,26 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
               'Beacon Configuration',
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
+            SizedBox(height: 8),
+            Container(
+              padding: EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.blue[50],
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.info_outline, size: 20, color: Colors.blue[700]),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'UUID, Major, and Minor are optional. The app uses hardcoded beacon MAC address (D2:4B:C0:EA:3E:FE) for detection. These fields are for documentation only.',
+                      style: TextStyle(fontSize: 12, color: Colors.blue[900]),
+                    ),
+                  ),
+                ],
+              ),
+            ),
             SizedBox(height: 16),
             TextFormField(
               controller: _beaconUuidController,

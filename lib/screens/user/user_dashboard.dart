@@ -146,16 +146,17 @@ class _UserDashboardState extends State<UserDashboard> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.assignment_outlined, size: 80, color: Colors.grey),
+                Icon(Icons.event_available, size: 80, color: Colors.grey),
                 SizedBox(height: 16),
                 Text(
-                  'No attendance records',
+                  'No attendance records yet',
                   style: TextStyle(fontSize: 18, color: Colors.grey[600]),
                 ),
                 SizedBox(height: 8),
                 Text(
-                  'Check in to events to see your history',
+                  'Attend events to see your check-in history here',
                   style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+                  textAlign: TextAlign.center,
                 ),
               ],
             ),
@@ -201,7 +202,8 @@ class _UserDashboardState extends State<UserDashboard> {
                         SizedBox(height: 4),
                         Row(
                           children: [
-                            Icon(Icons.location_on, size: 14, color: Colors.grey),
+                            Icon(Icons.location_on,
+                                size: 14, color: Colors.grey),
                             SizedBox(width: 4),
                             Expanded(child: Text(event.venue)),
                           ],
@@ -209,7 +211,8 @@ class _UserDashboardState extends State<UserDashboard> {
                         SizedBox(height: 2),
                         Row(
                           children: [
-                            Icon(Icons.access_time, size: 14, color: Colors.grey),
+                            Icon(Icons.access_time,
+                                size: 14, color: Colors.grey),
                             SizedBox(width: 4),
                             Text(
                               dateFormat.format(attendance.checkInTime),

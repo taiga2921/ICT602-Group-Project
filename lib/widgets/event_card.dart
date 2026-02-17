@@ -9,12 +9,12 @@ class EventCard extends StatelessWidget {
   final bool showStatus;
 
   const EventCard({
-    super.key,
+    Key? key,
     required this.event,
     this.onTap,
     this.trailing,
     this.showStatus = true,
-  });
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +23,7 @@ class EventCard extends StatelessWidget {
     final isActive = event.isEventActive();
 
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       elevation: 2,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
@@ -32,7 +32,7 @@ class EventCard extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -41,7 +41,7 @@ class EventCard extends StatelessWidget {
                   Expanded(
                     child: Text(
                       event.name,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
@@ -50,14 +50,14 @@ class EventCard extends StatelessWidget {
                   if (showStatus)
                     Container(
                       padding:
-                          const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                          EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                       decoration: BoxDecoration(
                         color: isActive ? Colors.green : Colors.grey,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
                         isActive ? 'Active' : 'Inactive',
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: Colors.white,
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
@@ -66,20 +66,20 @@ class EventCard extends StatelessWidget {
                     ),
                 ],
               ),
-              const SizedBox(height: 12),
+              SizedBox(height: 12),
               _buildInfoRow(Icons.location_on, event.venue),
-              const SizedBox(height: 8),
+              SizedBox(height: 8),
               _buildInfoRow(
                 Icons.calendar_today,
-                dateFormat.format(event.startTime),
+                '${dateFormat.format(event.startTime)} - ${dateFormat.format(event.endTime)}',
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: 8),
               _buildInfoRow(
                 Icons.access_time,
                 '${timeFormat.format(event.startTime)} - ${timeFormat.format(event.endTime)}',
               ),
               if (trailing != null) ...[
-                const SizedBox(height: 12),
+                SizedBox(height: 12),
                 trailing!,
               ],
             ],
@@ -93,7 +93,7 @@ class EventCard extends StatelessWidget {
     return Row(
       children: [
         Icon(icon, size: 16, color: Colors.grey[600]),
-        const SizedBox(width: 8),
+        SizedBox(width: 8),
         Expanded(
           child: Text(
             text,
