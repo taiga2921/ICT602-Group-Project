@@ -1,16 +1,12 @@
-# ble_attendance_app
+# Attendance Record System
 
-A new Flutter project.
+Class: M3CS2515C
+Team: 04
+Group Member:
 
-## Getting Started
+1. Muhammad Ikhwan Arifi Bin Ismail
+2. Muhammad Saffiy Bin Kamirul Ain
+3. Ahmad Naufal Bin Hamdan
+4. Aiman Asyraaf Bin Zulkifli
 
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Full app documentation is at [APP_DOCUMENTATION.md](APP_DOCUMENTATION.md)
