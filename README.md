@@ -1,13 +1,13 @@
 # Attendance Record System
 
-Youtube Video Link: [Link]()
-Backup Link: [Link]()
+Youtube Video Link: [Link]()  
+Backup Link: [Link]()  
 
 ---
 
-Class: M3CS2515C
-Team: 04
-Group Member:
+Class: M3CS2515C  
+Team: 04  
+Group Member:  
 
 1. Muhammad Ikhwan Arifi Bin Ismail
 2. Muhammad Saffiy Bin Kamirul Ain
@@ -18,15 +18,15 @@ Group Member:
 
 ## Login Credential
 
-Admin:
-- Email: admin@mobile.com
-- Pass: 12345678
+Admin:  
+Email: admin@mobile.com  
+Pass: 12345678  
 
-User:
-- Email: testuser@test.com
-- Pass: 12346578
+User:  
+Email: testuser@test.com  
+Pass: 12346578  
 
-_User can be added with sign up funtion_
+_User can be added with sign up function_
 
 ---
 
