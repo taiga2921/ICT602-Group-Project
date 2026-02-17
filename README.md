@@ -1,5 +1,9 @@
 # Attendance Record System
 
+Youtube Video Link: [Link]()
+
+---
+
 Class: M3CS2515C
 Team: 04
 Group Member:
@@ -22,10 +26,6 @@ testuser@test.com
 12346578
 
 User can be added with sign up funtion
-
----
-
-Youtube Video Link: [Link]()
 
 ---
 
