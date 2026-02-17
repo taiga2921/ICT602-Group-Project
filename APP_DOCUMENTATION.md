@@ -440,27 +440,6 @@ This dual validation ensures:
 
 ---
 
-## ⚙️ Configuration
-
-### **BLE Settings** (`services/ble_service.dart`)
-
-```dart
-static const String BEACON_NAME = 'Holy-IOT';
-static const String BEACON_MAC = 'D2:4B:C0:EA:3E:FE';
-static const int RSSI_THRESHOLD = -70; // 5-10 meters range
-```
-
-### **Permissions Required**
-
-- `BLUETOOTH` - Basic Bluetooth access
-- `BLUETOOTH_ADMIN` - Bluetooth management
-- `BLUETOOTH_SCAN` - Scan for BLE devices
-- `BLUETOOTH_CONNECT` - Connect to BLE devices
-- `ACCESS_FINE_LOCATION` - Precise GPS location
-- `ACCESS_COARSE_LOCATION` - Approximate location
-
----
-
 ## 📈 Features Summary
 
 ### ✅ **Implemented Features**
@@ -537,51 +516,6 @@ static const int RSSI_THRESHOLD = -70; // 5-10 meters range
 
 ---
 
-## 🔧 Troubleshooting
-
-### **Beacon Not Detected**
-
-**Problem**: App scanning but beacon not found
-**Solutions**:
-
-1. Ensure beacon is powered on
-2. Check beacon is broadcasting
-3. Verify user is within 5-10 meters
-4. Check Bluetooth is enabled
-5. Verify Location services enabled
-6. Use "nRF Connect" app to verify beacon works
-
-### **GPS Location Not Captured**
-
-**Problem**: GPS shows unavailable
-**Solutions**:
-
-1. Enable Location services in device settings
-2. Grant Location permission to app
-3. Ensure GPS has clear view of sky (outdoor)
-4. Wait a few seconds for GPS fix
-
-### **Check-In Failed**
-
-**Problem**: Beacon detected but check-in doesn't happen
-**Solutions**:
-
-1. Verify event is active
-2. Check current time is within event window
-3. Confirm not already checked in
-4. Ensure user is authenticated
-
-### **Permission Issues**
-
-**Problem**: Permissions denied
-**Solutions**:
-
-1. Go to Settings → Apps → BLE Attendance
-2. Enable Bluetooth and Location permissions
-3. Restart app
-
----
-
 ## 📊 Technical Specifications
 
 ### **Performance**
@@ -598,45 +532,6 @@ static const int RSSI_THRESHOLD = -70; // 5-10 meters range
 - Supports unlimited users
 - Real-time synchronization
 - Cloud-based storage (Firebase)
-
-### **Compatibility**
-
-- Android: API Level 21+ (Android 5.0+)
-- iOS: iOS 10+ (Future support)
-- Flutter: 3.0.0+
-- Dart: 3.0.0+
-
----
-
-## 🚀 Future Enhancements
-
-### **Potential Features**
-
-- [ ] iOS support
-- [ ] Multiple beacon support per event
-- [ ] Check-out functionality
-- [ ] Geofencing for additional validation
-- [ ] Push notifications for event reminders
-- [ ] QR code fallback (if BLE unavailable)
-- [ ] Analytics dashboard
-- [ ] Attendance statistics and charts
-- [ ] Export to Excel/CSV
-- [ ] Email reports
-- [ ] User profile management
-- [ ] Event categories/tags
-- [ ] Search and filter events
-
----
-
-## 📞 Support
-
-For issues or questions:
-
-1. Check troubleshooting section
-2. Review Firebase logs
-3. Check Flutter logs: `flutter logs`
-4. Verify beacon with nRF Connect app
-5. Review Firestore Security Rules
 
 ---
 
